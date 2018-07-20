@@ -1,42 +1,37 @@
 'use strict';
 import React, { Component } from 'react';
 import {
-    AlertIOS,
     Button,
+    FlatList,
     Image,
-    Platform,
-    StyleSheet,
+    RefreshControl,
     Text,
-    TextInput,
     View,
 } from 'react-native';
 import {
     Header,
-    Card,
-    ListItem
+    Card
 } from 'react-native-elements';
 import styles from './styles';
 import db from './db';
 
-
-let sql = `SELECT Food, FoodQuantity, PickupUntil, Description FROM d WHERE FoodServiceName='Jimmy Johns'
-  ORDER BY Date`;
-
 export class RecycleCard extends Component {
     constructor(props) {
         super(props)
-        const item = props.item;
-        console.log("item ", item);
         this.state = {
-            // rows=1,
-        }
+            item: props.item,
+        };
+        console.log("props", props);
     };
-
+    
     render() {
+        console.log("renders ")
         return (
+
             <Card containerStyle={{
                 borderRadius: 3,
-                shadowOffset: { height: 0, width: 2 }
+                shadowOffset: { height: 2, width: 2 },
+                shadowRadius: 3
             }} >
                 <View style={{
                     flexDirection: 'row',
@@ -61,8 +56,7 @@ export class RecycleCard extends Component {
                         paddingRight: 10,
                         justifyContent: 'center',
                     }}>
-                        <Text style={{ fontWeight: '500', fontSize: 24 }}>Assorted Vegetables</Text>
-                        {/* <Text style={{ fontWeight: '500', fontSize: 24 }}>{this.item.Food}</Text> */}
+                        <Text style={{ fontWeight: '500', fontSize: 24 }}>{this.state.item.Food}</Text>
                         <View style={{
                             flexDirection: 'row',
                             margin: 5
@@ -77,9 +71,7 @@ export class RecycleCard extends Component {
                                 />
 
                             </View>
-                            <Text style={{ color: '#ff8000', fontWeight: 'bold', fontSize: 14 }}>0/2 </Text><Text style={{ fontSize: 14 }}>reservations</Text>
-                            {/* <Text style={{ color: '#ff8000', fontWeight: 'bold', fontSize: 14 }}>0/{this.item.FoodQuantity} </Text><Text style={{ fontSize: 14 }}>reservations</Text> */}
-
+                            <Text style={{ color: '#ff8000', fontWeight: 'bold', fontSize: 14 }}>0/{this.state.item.FoodQuantity} </Text><Text style={{ fontSize: 14 }}>reservations</Text>
                         </View>
                         <View style={{
                             flexDirection: 'row',
@@ -95,8 +87,7 @@ export class RecycleCard extends Component {
                                 />
 
                             </View>
-                            <Text style={{ fontSize: 14 }}><Text style={{ fontWeight: 'bold' }}>2</Text> servings</Text>
-                            <Text style={{ fontSize: 14 }}><Text style={{ fontWeight: 'bold' }}>{this.item.FoodQuantity}</Text> servings</Text>
+                            <Text style={{ fontSize: 14 }}><Text style={{ fontWeight: 'bold' }}>{this.state.item.FoodQuantity}</Text> servings</Text>
                         </View>
 
                         <View style={{
@@ -114,16 +105,14 @@ export class RecycleCard extends Component {
 
                             </View>
                             <Text style={{ fontSize: 14 }}>Availabile until
-                            <Text style={{ fontWeight: 'bold' }}> 3:30PM</Text>
-                            {/* <Text style={{ fontWeight: 'bold' }}> {this.state.PickupUntil}</Text> */}
+                        <Text style={{ fontWeight: 'bold' }}> {this.state.item.PickupUntil}</Text>
                             </Text>
                         </View>
                         <View style={{
                             paddingTop: 10,
                             paddingDown: 10,
                         }}>
-                            <Text style={{ fontSize: 13 }}>Diced carrots, whole onions, and some potatoes.</Text>
-                            <Text style={{ fontSize: 13 }}>{this.state.description}</Text>
+                            <Text style={{ fontSize: 13 }}>{this.state.item.Description}</Text>
                         </View>
                     </View>
                 </View>
@@ -139,12 +128,11 @@ export class FootCastHeader extends Component {
             press: false,
         }
     };
-    
     render() {
         return (
             <Header
                 centerComponent={{
-                    text: 'Donor',
+                    text: 'Donor - Jimmy Johns',
                     style: {
                         color: '#fff',
                         fontWeight: '500',
@@ -165,60 +153,66 @@ export default class HomeScreen extends Component {
         super(props);
         this.state = {
             name: '',
-            rows: [],
+            refreshing: false,
+            selected: db.length,
         };
         // if you want to listen on navigator events, set this up
         this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
-    };
-    componentWillMount(){
-        readDB
-    };
-    componentWillUpdate() {
-        readDB
-    };
-    readDB() {
-        db.all(sql, [], (err, rows) => {
-            if (err) {
-                throw err;
-            }
-            this.state.rows = rows;
-            rows.forEach((row) => {
-                console.log(row.Food);
-            });
-        });
     };
     onNavigatorEvent(event) { // this is the onPress handler for the two buttons together
         if (event.type == 'NavBarButtonPress') { // this is the event type for button presses
             if (event.id == 'add') {
                 this.props.navigator.push({
                     screen: 'MadHackers.DonorForm',
-                    title: 'New Food Listing'
+                    title: 'New Food Listing',
+
+                    animated: true, // does the pop have transition animation or does it happen immediately (optional)
+                    animationType: 'fade', // 'fade' (for both) / 'slide-horizontal' (for android) does the pop have different transition animation (optional)
                 });
             }
         }
+        console.log("event.id " , event.id);
+        console.log(db);
+        if(event.id == 'willAppear'){
+            this.state.refreshing = true;
+            this.state.selected = db.length;
+            console.log("this.state.selected ", this.state.selected);
+        }
     }
+    _onRefresh = () => {
+        console.log("_onRefresh");
+        this.setState({refreshing: false});
+      }
     _keyExtractor = (item, index) => index.toString();
-    _renderItem = ({item, index}) => {
+    _renderItem = ({ item, index }) => {
         return (
             <RecycleCard
-              item={item}
-              index={index}
+                item={item}
+                index={index}
             />
         );
     };
     render() {
+        console.log("renders ");
         return (
             <View style={{ flex: 1, justifyContent: 'flex-start' }}>
                 <FootCastHeader />
                 <View style={styles.container}>
-                <FlatList
-                data={this.state.rows}
-                keyExtractor={this._keyExtractor}
-                renderItem={this._renderItem}/>
+                    <FlatList
+                        data={db}
+                        keyExtractor={this._keyExtractor}
+                        renderItem={this._renderItem} 
+                        extraData={this.state}
+                        refreshControl={
+                        <RefreshControl
+                            refreshing={this.state.refreshing}
+                            onRefresh={this._onRefresh}
+                        />}/>
                 </View>
             </View>
         );
     };
+
 
     _onNameTextChanged = (event) => {
         console.log('_onNameTextChanged');

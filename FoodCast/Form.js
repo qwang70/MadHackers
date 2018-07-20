@@ -18,6 +18,7 @@ import {
     Divider
 } from 'react-native-elements';
 import styles from './styles';
+import db from './db';
 
 // type Props = {};
 export default class DonorForm extends Component {
@@ -28,20 +29,31 @@ export default class DonorForm extends Component {
             type: '',
             nServering: '',
             pickUpTime: '5:30',
-            day: 'PM',
+            day: 'P.M.',
             description: '',
         };
     };
 
+    _onPressSubmit = () =>  {
+        console.log("this.state", this.state);
+        db.push({
+            Food: this.state.title,
+            FoodQuantity: this.state.FoodQuantity,
+            PickupUntil: this.state.pickUpTime + this.state.day,
+            Description: this.state.description
+        });
+        this.props.navigator.pop({
+            animated: true, // does the pop have transition animation or does it happen immediately (optional)
+            animationType: 'fade', // 'fade' (for both) / 'slide-horizontal' (for android) does the pop have different transition animation (optional)
+          });
+    };
     render() {
         return (
             <ScrollView style={{
                 margin: 20
             }}>
-                <Text style={styles.formDescription}>Title</Text>
+                <Text style={styles.formDescription}>Food</Text>
                 <TextInput style={styles.formInput}
-                    secureTextEntry={true}
-                    autoCapitalize={'none'}
                     value={this.state.title}
                     onChange={this._onTitleTextChanged}
                     placeholder='Name of food to donate' />
@@ -57,16 +69,16 @@ export default class DonorForm extends Component {
                 />
                 <Text style={styles.formDescription}>Available for pick-up until</Text>
 
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-start'  }}>
-                    <View style={{flex: 0.5}}>
-                    <TextInput style={styles.formInputHalf}
-                        value={this.state.pickUpTime}
-                        onChange={this._onPickUpTimeNumberTextChanged}
-                        
-                    /></View><View style={{flex: 0.5}}><TextInput style={styles.formInputHalf}
-                        value={this.state.day}
-                        onChange={this._onDayNumberTextChanged}
-                    />
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
+                    <View style={{ flex: 0.5 }}>
+                        <TextInput style={styles.formInputHalf}
+                            value={this.state.pickUpTime}
+                            onChange={this._onPickUpTimeNumberTextChanged}
+
+                        /></View><View style={{ flex: 0.5 }}><TextInput style={styles.formInputHalf}
+                            value={this.state.day}
+                            onChange={this._onDayNumberTextChanged}
+                        />
                     </View></View>
                 <Text style={styles.formDescription}>Description of food (optional)</Text>
                 <TextInput style={styles.formInputLong}
@@ -74,10 +86,12 @@ export default class DonorForm extends Component {
                     value={this.state.description}
                     onChange={this._onDescriptionTextChanged}
                 />
-                <Button title='CREATE NEW LISTING' 
-                buttonStyle={{
-                    backgroundColor: '#ff8000', padding: 20}
-                }/>
+                <Button title='CREATE NEW LISTING'
+                    onPress={this._onPressSubmit}
+                    buttonStyle={{
+                        backgroundColor: '#ff8000', padding: 20
+                    }
+                    } />
             </ScrollView>
         );
     };
