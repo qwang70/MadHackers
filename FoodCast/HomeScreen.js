@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import {
     Button,
     FlatList,
+    ScrollView,
     Image,
     RefreshControl,
     Text,
@@ -197,7 +198,7 @@ export default class HomeScreen extends Component {
         return (
             <View style={{ flex: 1, justifyContent: 'flex-start' }}>
                 <FootCastHeader />
-                <View style={styles.container}>
+                <ScrollView style={styles.container}>
                     <FlatList
                         data={db}
                         keyExtractor={this._keyExtractor}
@@ -208,7 +209,7 @@ export default class HomeScreen extends Component {
                             refreshing={this.state.refreshing}
                             onRefresh={this._onRefresh}
                         />}/>
-                </View>
+                </ScrollView>
             </View>
         );
     };
